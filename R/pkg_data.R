@@ -1,4 +1,3 @@
-#' @export
 get_available_packages <- function() {
  available_pkgs <- available.packages()
  pkg_names <- available_pkgs[, "Package"]
@@ -6,14 +5,12 @@ get_available_packages <- function() {
  pkg_names
 }
 
-#' @export
 prepare_pkg_adj_list <- function(relation_types) {
   stopifnot(all(relation_types %in% c("Depends", "Imports", "Suggests")))
   pkg_names <- get_available_packages()
   tools::package_dependencies(packages = pkg_names, which = relation_types)
 }
 
-#' @export
 create_pkg_graph_df <- function(pkg_adj_list) {
   create_single_pkg_graph_df <- function(pkg_name) {
     pkg_deps <- pkg_adj_list[[pkg_name]]
