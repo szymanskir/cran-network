@@ -6,3 +6,4 @@
 ^\.travis\.yml$
 ^.drake
 ^make.R
+^notebooks/
