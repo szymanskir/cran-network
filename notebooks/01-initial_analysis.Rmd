@@ -1,0 +1,36 @@
+---
+title: "01 - Initial Analysis"
+author: "Ryszard Szymański"
+date: "5/24/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(patchwork)
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+options(knitr.table.format = "html") 
+```
+
+## Introduction
+The goal of this notebook is to perform an initial analasis of the CRAN package network which will lead to a number of experiment ideas for future work. Two different types of package networks have been created:
+
+* One based on the `Suggests` relation
+* One based on both the `Depends` and `Imports` relation
+
+## Analysis
+A basic summary of graph statistics is presented in the table below:
+```{r}
+drake::readd(graphs_summary) %>% 
+  knitr::kable() %>% 
+  kableExtra::kable_styling(full_width = FALSE)
+```
+
+As we are investigating package dependencies only the in degrees will be considered. The histogram of in degrees for both graphs are depicted in the following pictures:
+```{r, out.width="100%"}
+drake::readd(degree_hist_plot_suggests_graph) +
+  drake::readd(degree_hist_plot_depends_graph)
+```
+
+Both graphs follow a power distribution and are on the less dense side. The difference between those graphs is that one is a DAG and the other is not, however this is not a surprise as the Depends graph should be a DAG while the suggests graph might contain crossdependcies between popular document and testing frameworks.
+
+
