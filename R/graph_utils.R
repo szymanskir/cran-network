@@ -54,7 +54,7 @@ run_archiving_attack <- function(pkg_graph, pkg_name) {
   }
   
   all_deps_set <- do.call(igraph::union, all_deps)
-  vcount(pkg_graph) - (length(all_deps_set) + 1)
+  igraph::vcount(pkg_graph) - (length(all_deps_set) + 1)
 }
 
 

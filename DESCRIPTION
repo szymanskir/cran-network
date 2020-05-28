@@ -16,6 +16,8 @@ RoxygenNote: 7.1.0
 Suggests: 
     testthat
 Imports: 
+    batchtools,
     data.table (>= 1.0.0),
     igraph,
-    ggplot2
+    ggplot2,
+    logging
