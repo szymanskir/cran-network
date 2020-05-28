@@ -42,6 +42,10 @@ plan <- drake::drake_plan(
     top_n_pkgs(graph),
     transform = map(graph = list(suggests_graph, depends_graph))
   ),
+  
+  all_pkgs = direct_graph_df$vertices$name,
+  archiving_attacks_simulation_results = archiving_attacks_simulation(
+    depends_graph, all_pkgs, TRUE, "simulation_registry"),
   initial_analysis_report = rmarkdown::render(knitr_in("notebooks/01-initial_analysis.Rmd"))
 )
 

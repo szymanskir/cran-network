@@ -1,5 +1,5 @@
 get_available_packages <- function() {
- available_pkgs <- available.packages()
+ available_pkgs <- utils::available.packages()
  pkg_names <- available_pkgs[, "Package"]
  names(pkg_names) <- NULL
  pkg_names
