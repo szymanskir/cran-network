@@ -7,3 +7,4 @@
 ^.drake
 ^make.R
 ^notebooks/
+^simulation_registry

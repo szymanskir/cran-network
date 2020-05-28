@@ -3,3 +3,4 @@
 .RData
 .Ruserdata
 notebooks/*.html
+simulation_registry
