@@ -25,10 +25,13 @@ degree_hist <- function(graph, mode, title = NULL) {
 top_n_pkgs <- function(graph, n = 10) {
   vertex_degrees <- igraph::degree(graph, mode = "in")
   top_pkgs <- sort(vertex_degrees, decreasing = TRUE) %>% 
-    head(10)
+    utils::head(10)
+  
+  top_pkgs_names <- names(top_pkgs)
+  names(top_pkgs) <- NULL
   
   data.frame(
-    "Package Name" = names(top_pkgs),
+    "Package Name" = top_pkgs_names,
     "References" = top_pkgs
   )
 }
@@ -58,7 +61,7 @@ run_archiving_attack <- function(pkg_graph, pkg_name) {
 }
 
 
-archiving_attacks_simulation <- function(pkg_graph, pkg_names, parallelize = FALSE, reg_dir = NULL) {
+archiving_attacks_simulation <- function(pkg_graph, pkg_names, parallelize = FALSE, reg_dir = NA) {
   run_single_attack <- function(pkg_graph, pkg_name) {
     logging::loginfo(sprintf("Running simulation for %s", pkg_name))
     pkg_count <- NA

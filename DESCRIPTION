@@ -20,4 +20,5 @@ Imports:
     data.table (>= 1.0.0),
     igraph,
     ggplot2,
-    logging
+    logging,
+    utils

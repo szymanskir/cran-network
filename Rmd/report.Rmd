@@ -1,0 +1,111 @@
+---
+title: "CRAN package network analysis"
+author: "Ryszard Szymański"
+date: "5/31/2020"
+output: 
+  pdf_document:
+    includes:
+      in_header: report.sty
+---
+
+```{r setup, include=FALSE}
+library(data.table)
+library(patchwork)
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+options(knitr.table.format = "latex")
+```
+
+## Introduction
+
+R is an interpreted programming language created in 1993. Since then it has been widely used in a variety of fields such as statistics, visualization and other Data Science related fields. Its rich ecosystem of open-source packages developed by the community largely contributed to the success of the R programming language. The most popular repository for hosting R packages is [CRAN][cran-url] with over 15,000 available packages at the time of writing.
+
+
+## Objectives
+The goal of this project is to construct a network based on the relation between R packages and conduct an analysis aiming to answer questions regarding the characteristics of the obtained network. More specifically, these questions are:
+
+* What are the most popular dependencies and suggested packages?
+* Are there any cyclic dependencies in the network?
+* Which package getting archived would cause the most damage on CRAN?
+
+## Network preparation
+Each R package contains a DESCRIPTION file containing package metadata. Its relation to other packages is described by using the `Imports`, `Suggests`, `Depends`, `LinkingTo` and `Enhances` section. A more in depth explanation of each of those sections is presented below:
+
+* *Imports* - Packages that have to be present in order for the package to work.
+* *Suggests* - Packages that are used but are not required for the package to work e.g. packages for running tests.
+* *Depends* - Old version of Imports with a minor difference that Depends attached packages instead of loading them.
+* *LinkingTo* - Packages relying on C or C++ code in another package.
+* *Enhances* - Packages that are 'enhanced' by the developed package. Not a recommended section to use.
+
+Based on those relations two different networks were created: one containing relations from the *Suggests* sections and one containing relations from *Imports* and *Depends* sections. Those two networks will be called *Suggests network* and *Dependencies network* accordingly. Both networks are directed graphs were each edge corresponds to a connection between packages e.g. if package A has package B in its *Suggests* section than there exists an edge from A to B in the *Suggests* graph.
+
+
+A brief summary of network statistics as well as histograms of vertex degrees are presented below:
+```{r}
+graphs_summary <-  drake::readd(graphs_summary) 
+
+t(graphs_summary) %>% 
+  knitr::kable(digits = 6) %>% 
+  kableExtra::kable_styling(full_width = FALSE)
+```
+
+As package dependencies are investigated only the in degrees will be considered. The histogram of in degrees for both graphs are depicted in the following pictures:
+```{r, out.width="100%"}
+drake::readd(degree_hist_plot_suggests_graph) +
+  drake::readd(degree_hist_plot_depends_graph)
+```
+
+Both graphs follow a power distribution and are on the less dense side. The difference between those graphs is that one is a DAG and the other is not, however this is not a surprise as the Dependencies graph should be a DAG while the suggests graph might contain crossdependencies between popular document and testing frameworks.
+
+## Most popular packages
+The most popular packages have been identified in both of those networks. The most popular packages correspond to the nodes in the network that have the largest degrees -- the largest amount of packages have them defined in their appropriate `DESCRIPTION` sections. The top 10 most popular packages for both of those networks are presented below:
+
+```{r}
+top_suggests <- drake::readd(top_suggests_graph)
+knitr::kable(top_suggests, col.names = list("Package Name", "#References"), booktabs = TRUE, caption = list("Top suggests packages")) %>% 
+  kableExtra::kable_styling(position = "center", latex_options = "hold_position")
+```
+
+As expected the most popular suggests packages are composed of packages that are used in development e.g. testing or documentation frameworks such as `testthat` or `knitr`. Moreover, packages often used when preparing documentation are present as well e.g. `ggplot2` for creating plots or `spelling` for finding spelling errors.
+
+```{r}
+top_dependcies <- drake::readd(top_depends_graph)
+knitr::kable(top_dependcies, col.names = list("Package Name", "#References"), booktabs = TRUE, caption = list("Top dependencies")) %>% 
+  kableExtra::kable_styling(position = "center", latex_options = "hold_position")
+```
+
+R is a tool well known for its easy to use and extensible visualization libraries, so the fact that `ggplot2` is the most popular dependency is not a surprise. Other packages include `Rcpp` which is used for creating high performant R packages using C++. The popularity of the `tidyverse` can also be observed as `dplyr`, `magrittr`, `stringr`, `tibble` and `rlang` are present on the list.
+
+
+## Cyclic dependencies
+Cyclic dependencies between packages are considered harmful. In case when no existing version of a previous package is available then it is impossible to install any of the package from this cycle. 
+
+The dependencies graph is a direct acyclic graph which means that there are no circular dependencies between packages. However, in the suggests network there are cycles, but those are not harmful as those packages are not needed in order for the package to work. Moreover, those cross references occur naturally for example `testthat` and `rmarkdown` reference each other in the `Suggests` section as the testing package needs to have proper documentation and the documenting framework needs unit tests in order to ensure its correctness.
+
+## Archiving attacks
+Each day on CRAN automated tests are run in order to ensure that all packages fulfill all necessary requirements. In case a package fails any of those tests, then the package maintainer is asked to correct those in a specific amount of time. If the maintainer fails to upload a corrected version of his package before the deadline than his package gets archived and removed from CRAN. Moreover, all other packages that have the archived package in its dependencies get archived as well as a result multiple packages can be removed from CRAN.
+
+In this project an experiment was performed in order to find the package that if archived would cause the largest amount of packages to be removed. As the search space is not large a brute force algorithm has been used. The algorithm would perform a simulation for each package where it would remove the package from the network and recursively remove all of it's reverse dependencies. When no more reverse dependencies are found than the amount of remaining vertices is saved in the results. In order to speed up calculations the simulations have parallelized using the `batchtools` package. The results are presented in the table below:
+
+```{r}
+sim_results <- drake::readd(archiving_attacks_simulation_results)
+sim_results <- head(sim_results[order(pkg_count)], 10)
+
+sim_results %>% 
+  knitr::kable(col.names = c("Package Name", "#Remaining packages")) %>% 
+  kableExtra::kable_styling(position = "center", latex_options = "hold_position")
+```
+
+The most sensitive network nodes correspond to either most popular packages e.g. `Rcpp`, `Magrittr`, `Matrix` or low level packages that are used in more popular packages e.g. `glue`, `R6`, `lattice` -- `Rcpp` can also be included in this category.
+
+
+## Summary and future work
+The network of CRAN packages is a complex network following a power law. When it comes to robustness of the package network the most sensitive nodes correspond to either low-level packages used by most popular packages or nodes with the highest degrees. This makes it different from a traditional BA network were the most sensitive nodes are hubs.
+
+As there hasn't been much work regarding the analysis of the network of R packages the project might be expanded by the following ideas:
+
+* Analysis whether community detection algorithms are able to find package universes such as the `tidyverse` or the `mlr3verse`
+* Expansion of the CRAN network with Bioconductor packages
+* Creation of an equivalent of the 'Erdos/Bacon' regarding package authors were the connection between authors is defined by package coauthors
+
+
+[cran-url]: https://cran.r-project.org "CRAN"

@@ -6,5 +6,5 @@
 ^\.travis\.yml$
 ^.drake
 ^make.R
-^notebooks/
+^Rmd/
 ^simulation_registry
