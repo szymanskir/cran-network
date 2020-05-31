@@ -45,8 +45,10 @@ plan <- drake::drake_plan(
   
   all_pkgs = direct_graph_df$vertices$name,
   archiving_attacks_simulation_results = archiving_attacks_simulation(
-    depends_graph, all_pkgs, TRUE, "simulation_registry"),
-  initial_analysis_report = rmarkdown::render(knitr_in("notebooks/01-initial_analysis.Rmd"))
+    depends_graph, all_pkgs, TRUE),
+  initial_analysis_report = rmarkdown::render(knitr_in("Rmd/01-initial_analysis.Rmd"), output_dir = "html/"),
+  
+  final_report = rmarkdown::render(knitr_in("Rmd/report.Rmd"), output_dir = "html/")
 )
 
 drake::make(plan)
