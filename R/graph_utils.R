@@ -25,7 +25,7 @@ degree_hist <- function(graph, mode, title = NULL) {
 top_n_pkgs <- function(graph, n = 10) {
   vertex_degrees <- igraph::degree(graph, mode = "in")
   top_pkgs <- sort(vertex_degrees, decreasing = TRUE) %>% 
-    head(10)
+    utils::head(10)
   
   top_pkgs_names <- names(top_pkgs)
   names(top_pkgs) <- NULL
